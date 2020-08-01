@@ -47,14 +47,9 @@ or
   	```
       compile project(':react-native-get-music-files')
   	```
-4. Add the following `READ_EXTERNAL_STORAGE` permission to `AndroidManifest.xml`
-    ```xml
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    ```
-    Also starting from Android M, users need to be prompted for permission dynamically. Follow [this](https://facebook.github.io/react-native/docs/permissionsandroid) link for more details on how to do that.
 
 ## Usage
-```js
+```
 import MusicFiles from 'react-native-get-music-files';
 
 MusicFiles.getAll({
@@ -65,7 +60,7 @@ MusicFiles.getAll({
     genre : true,
     title : true,
     cover : true,
-    minimumSongDuration : 10000, // get songs bigger than 10000 miliseconds duration,
+    minimumSongDuration : 10000 // get songs bigger than 10000 miliseconds duration,
     fields : ['title','albumTitle','genre','lyrics','artwork','duration'] // for iOs Version
 }).then(tracks => {
     // do your stuff...
@@ -106,7 +101,7 @@ componentDidMount(){
 
 MusicFiles returns an array of objects where you can loop, something like this.
 
-```js
+```
 [
   {
     id : 1,
@@ -122,7 +117,7 @@ MusicFiles returns an array of objects where you can loop, something like this.
 ]
 ```
 
-# RNAndroidAudioStore
+# RNAndroidStore
 
 This class is essentially an extended version of getMusicFiles but only works on android > 5.0.
 

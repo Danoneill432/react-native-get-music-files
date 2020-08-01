@@ -20,7 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import com.facebook.react.bridge.ReadableMap;
@@ -191,11 +191,19 @@ public class RNAndroidStore extends ReactContextBaseJavaModule {
                     MediaStore.Audio.Albums.ARTIST, MediaStore.Audio.Albums.ALBUM_ART,
                     MediaStore.Audio.Albums.NUMBER_OF_SONGS };
 
-            Cursor cursor = getCurrentActivity().getContentResolver()
-                    .query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, projection, null, null, null);
+            ContentResolver albumResolver = getCurrentActivity().getContentResolver();
+
+            String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC) + "/tunescraper";
+
+            Uri musicUri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
+
+            String sortOrder = MediaStore.Audio.Albums.ALBUM + " ASC";
+            Cursor cursor = albumResolver.query(musicUri, projection, null, null, sortOrder);
+
             if (cursor != null && cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 do {
+
                     WritableMap item = new WritableNativeMap();
                     item.putString("id", String.valueOf(cursor.getLong(0)));
                     item.putString("album", String.valueOf(cursor.getString(1)));
@@ -264,7 +272,7 @@ public class RNAndroidStore extends ReactContextBaseJavaModule {
                     MediaStore.Audio.Media._ID };
             String Selection = MediaStore.Audio.Genres.NAME + " Like ?";
             genrecursor = getCurrentActivity().getContentResolver().query(MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI,
-                    genreProjection, Selection, new String[] { "%"+options.getString("genre")+"%" }, null);
+                    genreProjection, Selection, new String[] { "%" + options.getString("genre") + "%" }, null);
             if (genrecursor != null && genrecursor.getCount() > 0) {
                 genrecursor.moveToFirst();
 
@@ -397,8 +405,8 @@ public class RNAndroidStore extends ReactContextBaseJavaModule {
                     MediaStore.Audio.Media._ID };
 
             Cursor cursor = getCurrentActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    projection, MediaStore.Audio.Albums.ALBUM + " Like ?", new String[] { "%" + options.getString("album") + "%" },
-                    null);
+                    projection, MediaStore.Audio.Albums.ALBUM + " Like ?",
+                    new String[] { "%" + options.getString("album") + "%" }, null);
             if (cursor != null && cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 do {
@@ -456,7 +464,8 @@ public class RNAndroidStore extends ReactContextBaseJavaModule {
             Cursor cursor = getCurrentActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     projection,
                     MediaStore.Audio.Albums.ARTIST + " Like ? AND " + MediaStore.Audio.Albums.ALBUM + " Like ?",
-                    new String[] { "%" + options.getString("artist") + "%", "%" + options.getString("album") + "%"}, null);
+                    new String[] { "%" + options.getString("artist") + "%", "%" + options.getString("album") + "%" },
+                    null);
             if (cursor != null && cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 do {
@@ -574,12 +583,12 @@ public class RNAndroidStore extends ReactContextBaseJavaModule {
 
     private void getSongs(ReadableMap options, final Callback successCallback, final Callback errorCallback) {
         ContentResolver musicResolver = getCurrentActivity().getContentResolver();
-        Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
 
-        if (minimumSongDuration > 0) {
-            selection += " AND " + MediaStore.Audio.Media.DURATION + " >= " + minimumSongDuration;
-        }
+        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC) + "/tunescraper";
+
+        Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0 AND " + MediaStore.Audio.Media.DATA + " LIKE '"
+                + path + "/%'";
 
         String[] projection = { MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.DATA,
@@ -670,6 +679,8 @@ public class RNAndroidStore extends ReactContextBaseJavaModule {
                                 if (getDurationFromSong) {
                                     items.putString("duration", songTimeDuration);
                                 }
+
+                                items.putString("time", Long.toString(new File(songPath).lastModified()));
 
                                 /*
                                  * if (getCommentsFromSong) { items.putString("comments",
